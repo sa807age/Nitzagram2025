@@ -8,19 +8,48 @@ class Post:
     """
     A class used to represent post on Nitzagram
     """
-    def __init__(self): #TODO: add parameters
-        #TODO: write me!
-        pass
+    def __init__(self, username, location, description, comments: list, likes_counter=0):
+        self.username = username
+        self.location = location
+        self.description = description
+        self.comments = comments
+        self.likes_counter = likes_counter
+
+
+    def add_like(self):
+        self.likes_counter += 1
+
+
+    def add_comments(self, text):
+        self.comments.append(text)
+
+
+class ImagePost(Post):
+    def __init__(self, username, location, description, comments: list, photo, likes_counter=0):
+        self.photo = photo
+        super().__init__(username, location, description, comments, likes_counter)
+
 
     def display(self):
-        """
-        Display the Post image/Text, description, location, likes and comments
-        on screen
+        img_photo = pygame.image.load(self.photo)
+        img_photo = pygame.transform.scale(img_photo, (POST_WIDTH, POST_HEIGHT))
+        screen.blit(img_photo, (POST_X_POS, POST_Y_POS))
 
-        :return: None
-        """
-        # TODO: write me!
-        pass
+
+class TextPost(Post):
+    def __init__(self, username, location, description, comments: list, text, likes_counter=0):
+        self.text = text
+        super().__init__(username, location, description, comments, likes_counter)
+
+
+    def display(self):
+        img_text = pygame.image.load(self.text)
+        img_text = pygame.transform.scale(img_text, (POST_WIDTH, POST_HEIGHT))
+        screen.blit(img_text, (POST_X_POS, POST_Y_POS))
+
+
+
+
 
 
     def display_comments(self):
