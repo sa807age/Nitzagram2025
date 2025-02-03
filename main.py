@@ -1,43 +1,55 @@
 import pygame
+from constants import *
+from classes.Post import TextPost
+from buttons import Button
 from helpers import screen
-from constants import WINDOW_WIDTH, WINDOW_HEIGHT, BLACK
-
 
 def main():
-    # Set up the game display, clock and headline
     pygame.init()
 
-    # Change the title of the window
-    pygame.display.set_caption('Nitzagram')
+    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    pygame.display.set_caption("Nitzagram")
 
     clock = pygame.time.Clock()
 
-    # Set up background image
-    background = pygame.image.load('Images/background.png')
-    background = pygame.transform.scale(background,
-                                        (WINDOW_WIDTH, WINDOW_HEIGHT))
+    # Создаем несколько объектов постов
+    post1 = TextPost("This is a test post. It's a very long post that should wrap nicely on the screen.", color_text=(255, 255, 255), color_background=(0, 0, 0))
+    post2 = TextPost("Another test post, this time with some different content.", color_text=(0, 0, 255), color_background=(255, 255, 255))
 
-    # TODO: add a post here
+    posts = [post1, post2]
+    current_post = 0
 
     running = True
     while running:
-        # Grabs events such as key pressed, mouse pressed and so.
-        # Going through all the events that happened in the last clock tick
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                post = posts[current_post]
+                action = post.handle_click(mouse_pos)
+                if action == "like":
+                    # Добавить лайк
+                    pass
+                elif action == "comment":
+                    # Открыть окно комментариев
+                    pass
+                elif action == "share":
+                    # Поделиться постом
+                    pass
+                # Переход к следующему посту
+                if current_post < len(posts) - 1:
+                    current_post += 1
+                else:
+                    current_post = 0
 
-        # Display the background, presented Image, likes, comments, tags and location(on the Image)
+        # Обновляем экран
         screen.fill(BLACK)
-        screen.blit(background, (0, 0))
+        posts[current_post].display(screen)
 
-        # Update display - without input update everything
         pygame.display.update()
-
-        # Set the clock tick to be 60 times per second. 60 frames for second.
         clock.tick(60)
-    pygame.quit()
-    quit()
 
+    pygame.quit()
 
 main()

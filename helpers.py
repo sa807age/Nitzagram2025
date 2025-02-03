@@ -1,116 +1,95 @@
 import pygame
+from constants import *  # Все константы импортированы из constants.py
 
-from constants import *
-
+# Инициализация экрана с размерами из constants.py
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
-
 
 def from_text_to_array(text):
     """
-    the function get text and break it into sentences that fits the screen, in
-    case the text too long to for one line
-    :param text: string
-        text to show on screen
-    :return: list of sentences
+    Разбивает текст на строки, которые помещаются на экране.
+    :param text: строка текста
+    :return: список строк, которые помещаются на экран
     """
     text_array = []
     text_to_edit = text
-    if len(text) > 20:
-        while not (len(text_to_edit) <= 0):
+    # Если текст длиннее максимальной длины строки
+    if len(text) > LINE_MAX_LENGTH:
+        while len(text_to_edit) > 0:
             if len(text_to_edit) < LINE_MAX_LENGTH:
                 text_array.append(text_to_edit)
                 text_to_edit = ""
             else:
-                temp = text_to_edit[0: LINE_MAX_LENGTH]
+                temp = text_to_edit[:LINE_MAX_LENGTH]
                 text_to_edit = text_to_edit[LINE_MAX_LENGTH:]
-                while not (temp[-1] == ' ') and not (temp[-1] == ','):
+                while not (temp[-1] == ' ' or temp[-1] == ','):  # Проверяем, не обрезать ли слово
                     text_to_edit = temp[-1] + text_to_edit
-                    temp_len = int(len(temp))
-                    temp = temp[0: temp_len - 1]
+                    temp = temp[:-1]
                 text_array.append(temp)
     else:
         text_array.append(text)
     return text_array
 
-
 def mouse_in_button(button, mouse_pos):
     """
-    The function get button and mouse press position on screen and return True
-    if mouse click on button
-    :param button: Button object
-        button on screen
-    :param mouse_pos: tuple
-        the x and y position of the mouse cursor
+    Проверяет, находится ли клик мыши внутри кнопки.
+    :param button: объект Button
+    :param mouse_pos: кортеж (x, y) координат мыши
     :return: boolean
-        True if mouse click on button, else False
     """
     if button.x_pos + button.width > mouse_pos[0] > button.x_pos and \
             button.y_pos < mouse_pos[1] < button.y_pos + button.height:
         return True
-
+    return False
 
 def draw_comment_text_box():
-    pygame.draw.rect(screen, GREY, pygame.Rect(
-        VIEW_MORE_COMMENTS_X_POS, VIEW_MORE_COMMENTS_Y_POS, 300, 20))
-    pygame.draw.rect(screen, WHITE,
-                     pygame.Rect(VIEW_MORE_COMMENTS_X_POS + 1,
-                                 VIEW_MORE_COMMENTS_Y_POS + 1, 298, 18))
+    """
+    Рисует текстовое поле для ввода комментария.
+    Используется цвет из constants.py для фона.
+    """
+    pygame.draw.rect(screen, BLACK, pygame.Rect(COMMENT_BUTTON_X_POS, COMMENT_BUTTON_Y_POS, 300, 20))  # Серый цвет
+    pygame.draw.rect(screen, WHITE, pygame.Rect(COMMENT_BUTTON_X_POS + 1, COMMENT_BUTTON_Y_POS + 1, 298, 18))
     pygame.display.flip()
 
-
-# Get the comment that the user typed will using Nitzagram and translate it
-# to string
 def read_comment_from_user():
     """
-    Read the comment the user type.
-    :return: string
-        return typed comment
+    Читает комментарий, который вводит пользователь.
+    :return: строка с введенным комментарием
     """
     pressed_enter = False
     new_comment = ""
-    # Draw the rectangle where the user can see the comment he typed
-    draw_comment_text_box()
+    draw_comment_text_box()  # Рисуем поле для ввода комментария
     while not pressed_enter:
-        # get the string for comment
         for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
             if event.type == pygame.KEYDOWN:
-                draw_comment_text_box()
+                draw_comment_text_box()  # Перерисовываем поле при каждом изменении
                 if event.key == pygame.K_RETURN:
-                    pressed_enter = True
-                # command to add len ! = 0
-                elif event.key == pygame.K_BACKSPACE \
-                        and not (len(new_comment) == 0):
-                    new_comment = new_comment[:-1]
+                    pressed_enter = True  # Заканчиваем ввод
+                elif event.key == pygame.K_BACKSPACE and new_comment:
+                    new_comment = new_comment[:-1]  # Удаляем последний символ
                 else:
-                    new_comment += event.unicode
-                font2 = pygame.font.SysFont('chalkduster.ttf', UI_FONT_SIZE, bold=False)
-                img2 = font2.render(new_comment, True, (50, 50, 50))
-                screen.blit(img2,
-                            (VIEW_MORE_COMMENTS_X_POS + 1,
-                             VIEW_MORE_COMMENTS_Y_POS + 1))
+                    new_comment += event.unicode  # Добавляем символ
+                font2 = pygame.font.SysFont('chalkduster.ttf', TEXT_POST_FONT_SIZE, bold=False)  # Убедитесь, что файл шрифта доступен
+                img2 = font2.render(new_comment, True, BLACK)
+                screen.blit(img2, (COMMENT_BUTTON_X_POS + 1, COMMENT_BUTTON_Y_POS + 1))
                 pygame.display.update()
     return new_comment
 
-
 def center_text(num_of_rows, text_to_display, row_number):
     """
-    center a sentence on screen
-    :param num_of_rows: int
-        number of sentences on screen
-    :param text_to_display: string
-        sentence to center
-    :param row_number: int
-        sentence row number in total text
-    :return: tuple
-        position of centered text
-    """
-    horizontal_margin = \
-        (POST_HEIGHT - num_of_rows * TEXT_POST_FONT_SIZE) // 2
-    # Get the text object size (height and width)
+     Центрирует текст на экране.
+     :param num_of_rows: int, количество строк
+     :param text_to_display: строка, текст для отображения
+     :param row_number: номер строки текста на экране
+     :return: кортеж с координатами (x, y)
+     """
+    horizontal_margin = (POST_HEIGHT - num_of_rows * TEXT_POST_FONT_SIZE) // 2
     text_rect = text_to_display.get_rect()
-    # Center the text to the center of X axis
-    text_rect.x = ((POST_WIDTH - text_rect.width) // 2) + 20
-    # Center the text to the center of the post on Y axis
-    text_rect.y = (POST_Y_POS + horizontal_margin +
-                   row_number * TEXT_POST_FONT_SIZE)
+    text_rect.x = ((POST_WIDTH - text_rect.width) // 2) + 20  # Центрирование по оси X
+    text_rect.y = (POST_Y_POS + horizontal_margin + row_number * TEXT_POST_FONT_SIZE)  # Центрирование по оси Y
     return text_rect
+
+
+
